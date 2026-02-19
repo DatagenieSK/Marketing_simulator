@@ -6,19 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>The Acquisition Simulator - Hormozi Marketing Mastery</title>
     
-    <!-- React & ReactDOM -->
-    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
-    
-    <!-- Babel for JSX -->
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    
-    <!-- Tailwind CSS -->
+    <!-- Tailwind CSS (Styling) -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Lucide Icons -->
+    <!-- Lucide Icons (Visuals) -->
     <script src="https://unpkg.com/lucide@latest"></script>
 
+    <!-- Google Fonts -->
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap');
         
@@ -51,438 +45,354 @@
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
+
+        /* Interactive Element Styles */
+        .option-btn {
+            transition: all 0.2s ease;
+        }
+        .option-btn:hover:not(:disabled) {
+            transform: translateX(4px);
+        }
     </style>
 </head>
-<body>
-    <div id="root"></div>
+<body class="min-h-screen pb-10 bg-slate-900 text-slate-200">
 
-    <script type="text/babel">
-        const { useState, useEffect, useMemo } = React;
-        const { 
-            BookOpen, 
-            Play, 
-            Trophy, 
-            TrendingUp, 
-            DollarSign, 
-            Users, 
-            Target, 
-            CheckCircle2, 
-            XCircle, 
-            ArrowRight,
-            RefreshCw,
-            Brain,
-            BarChart3
-        } = lucide;
+    <!-- Navbar -->
+    <nav class="border-b border-slate-800 bg-slate-900/90 backdrop-blur-md sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-2 cursor-pointer" onclick="app.setView('home')">
+                <i data-lucide="trending-up" class="text-blue-500"></i>
+                <span class="font-bold text-white text-lg hidden md:block">Acquisition<span class="text-slate-500">Sim</span></span>
+            </div>
+            <div class="flex gap-4">
+                <button onclick="app.setView('learn')" class="text-sm font-medium text-slate-400 hover:text-white transition-colors">Playbook</button>
+                <button onclick="app.startSim()" class="text-sm font-medium text-slate-400 hover:text-white transition-colors">Simulator</button>
+            </div>
+        </div>
+    </nav>
 
-        // --- Content Data ---
+    <!-- Main Content Container -->
+    <div id="app-root"></div>
 
+    <!-- JavaScript Logic -->
+    <script>
+        // --- Data ---
         const principles = [
-            {
-                id: 1,
-                title: "Start Low or Free",
-                icon: <DollarSign className="w-6 h-6 text-green-400" />,
-                summary: "Begin with low prices or free work to get flow, feedback, and testimonials. Only raise prices once you have demand.",
-                details: "In the beginning, you suck. You need volume (flow) to test your system. Do it for free to lower the barrier, get case studies, and fix your product. Once you have a stack of proof, raise prices by 20% increments."
-            },
-            {
-                id: 2,
-                title: "Volume Negates Luck",
-                icon: <BarChart3 className="w-6 h-6 text-blue-400" />,
-                summary: "Doing 'more' is the first step. Quantity leads to quality through iteration.",
-                details: "If you're unsure why you aren't growing, look at your volume. Are you posting 50 times a day or once a week? The gap between you and the winner is often just 100x the effort. Create flow, then monetize flow, then add friction."
-            },
-            {
-                id: 3,
-                title: "Optimize Front-to-Back",
-                icon: <Target className="w-6 h-6 text-red-400" />,
-                summary: "Spend 80% of your effort on the first 5 seconds (Hook/Headline).",
-                details: "David Ogilvy said the headline is 80 cents of your dollar. If the hook fails, the rest of the ad doesn't exist. Test 50 hooks for every 1 body of content."
-            },
-            {
-                id: 4,
-                title: "LTV:CAC Ratio",
-                icon: <TrendingUp className="w-6 h-6 text-purple-400" />,
-                summary: "The only metric that matters. How much you make vs. how much it costs to get a customer.",
-                details: "Aim for 3:1 minimum. The real wealth is made at 10:1 or 30:1. Build the business 'back-to-front' (increase LTV) so you can spend aggressively 'front-to-back' (Advertising)."
-            },
-            {
-                id: 5,
-                title: "The Core Four",
-                icon: <Users className="w-6 h-6 text-yellow-400" />,
-                summary: "Cold Outreach, Warm Outreach, Content, Paid Ads. Pick one and do it relentlessly.",
-                details: "If you aren't spending your first 4 hours a day on one of these 4 activities, you aren't marketing. You are invisible."
-            },
-            {
-                id: 6,
-                title: "Give Secrets, Sell Implementation",
-                icon: <Brain className="w-6 h-6 text-pink-400" />,
-                summary: "Make your free stuff better than their paid stuff.",
-                details: "Don't hold back information. Information is free; implementation is expensive. Gain trust by giving away the 'how-to', charge for the 'done-with-you' or 'done-for-you'."
-            }
+            { id: 1, title: "Start Low or Free", icon: "dollar-sign", color: "text-green-400", summary: "Begin with low prices/free to get flow.", details: "In the beginning, you suck. You need volume (flow) to test your system. Do it for free to lower the barrier, get case studies, and fix your product. Once you have proof, raise prices by 20%." },
+            { id: 2, title: "Volume Negates Luck", icon: "bar-chart-3", color: "text-blue-400", summary: "Doing 'more' is the first step.", details: "If you aren't growing, look at your volume. Are you posting 50 times a day or once a week? The gap between you and the winner is often just 100x the effort." },
+            { id: 3, title: "Optimize Front-to-Back", icon: "target", color: "text-red-400", summary: "80% effort on the first 5 seconds.", details: "David Ogilvy said the headline is 80 cents of your dollar. If the hook fails, the rest of the ad doesn't exist. Test 50 hooks for every 1 body of content." },
+            { id: 4, title: "LTV:CAC Ratio", icon: "trending-up", color: "text-purple-400", summary: "The only metric that matters.", details: "Aim for 3:1 minimum. Build the business 'back-to-front' (increase LTV) so you can spend aggressively 'front-to-back' (Advertising)." },
+            { id: 5, title: "The Core Four", icon: "users", color: "text-yellow-400", summary: "Cold Outreach, Warm Outreach, Content, Paid Ads.", details: "If you aren't spending your first 4 hours a day on one of these 4 activities, you aren't marketing. You are invisible." },
+            { id: 6, title: "Give Secrets, Sell Implementation", icon: "brain", color: "text-pink-400", summary: "Make free stuff better than their paid stuff.", details: "Information is free; implementation is expensive. Gain trust by giving away the 'how-to', charge for the 'done-with-you'." }
         ];
 
         const scenarios = [
             {
-                id: 1,
-                title: "The New Agency",
-                difficulty: "Beginner",
+                id: 1, title: "The New Agency", difficulty: "Beginner",
                 context: "You just started a marketing agency for dentists. You have 0 clients and no reputation.",
                 question: "How do you price your first package?",
                 options: [
-                    {
-                        text: "Market standard: $2,000/month to look professional.",
-                        outcome: "bad",
-                        feedback: "Wrong. You have no proof. It will be hard to sell and you'll starve waiting for a 'yes'."
-                    },
-                    {
-                        text: "Free trial or 'Pay on Performance' for the first 5 clients.",
-                        outcome: "good",
-                        feedback: "Correct! Get flow first. Get 5 testimonials, prove your system works, THEN charge."
-                    },
-                    {
-                        text: "Premium: $5,000/month to position yourself as an expert.",
-                        outcome: "bad",
-                        feedback: "Ego pricing. You're new, so you probably aren't an expert yet. You need reps, not rejection."
-                    }
+                    { text: "Market standard: $2,000/month to look professional.", outcome: "bad", feedback: "Wrong. You have no proof. It will be hard to sell and you'll starve waiting for a 'yes'." },
+                    { text: "Free trial or 'Pay on Performance' for the first 5 clients.", outcome: "good", feedback: "Correct! Get flow first. Get 5 testimonials, prove your system works, THEN charge." },
+                    { text: "Premium: $5,000/month to position yourself as an expert.", outcome: "bad", feedback: "Ego pricing. You're new, so you probably aren't an expert yet. You need reps, not rejection." }
                 ]
             },
             {
-                id: 2,
-                title: "Ad Fatigue",
-                difficulty: "Intermediate",
+                id: 2, title: "Ad Fatigue", difficulty: "Intermediate",
                 context: "Your Facebook ad campaign was doing well, but CPA has doubled in the last week. The creative is 3 months old.",
                 question: "What is your immediate move?",
                 options: [
-                    {
-                        text: "Turn off the ads and switch to cold calling.",
-                        outcome: "bad",
-                        feedback: "Reactionary. Paid ads work, your creative just fatigued. Don't abandon the channel."
-                    },
-                    {
-                        text: "Spend 2 weeks filming a high-production commercial.",
-                        outcome: "bad",
-                        feedback: "Too slow. You need speed and volume, not perfection."
-                    },
-                    {
-                        text: "Launch 10 new creative variations with different hooks by tomorrow.",
-                        outcome: "good",
-                        feedback: "Boom. Volume negates luck. Test new hooks on the existing winning concept."
-                    }
+                    { text: "Turn off the ads and switch to cold calling.", outcome: "bad", feedback: "Reactionary. Paid ads work, your creative just fatigued. Don't abandon the channel." },
+                    { text: "Spend 2 weeks filming a high-production commercial.", outcome: "bad", feedback: "Too slow. You need speed and volume, not perfection." },
+                    { text: "Launch 10 new creative variations with different hooks by tomorrow.", outcome: "good", feedback: "Boom. Volume negates luck. Test new hooks on the existing winning concept." }
                 ]
             },
             {
-                id: 3,
-                title: "Content Strategy",
-                difficulty: "Intermediate",
+                id: 3, title: "Content Strategy", difficulty: "Intermediate",
                 context: "You run a fitness coaching business. You feel like you're repeating yourself on Instagram every week.",
                 question: "How do you plan next month's content?",
                 options: [
-                    {
-                        text: "Research totally new obscure scientific topics to teach.",
-                        outcome: "bad",
-                        feedback: "People need to be reminded, not taught. Don't confuse them with complexity."
-                    },
-                    {
-                        text: "Tell the same core stories/lessons but use new formats and examples.",
-                        outcome: "good",
-                        feedback: "Yes. 'The news never changes, only the names.' Repackage your core winning beliefs."
-                    },
-                    {
-                        text: "Stop posting for a while to build anticipation.",
-                        outcome: "bad",
-                        feedback: "You are invisible if you don't post. Volume is key."
-                    }
+                    { text: "Research totally new obscure scientific topics to teach.", outcome: "bad", feedback: "People need to be reminded, not taught. Don't confuse them with complexity." },
+                    { text: "Tell the same core stories/lessons but use new formats and examples.", outcome: "good", feedback: "Yes. 'The news never changes, only the names.' Repackage your core winning beliefs." },
+                    { text: "Stop posting for a while to build anticipation.", outcome: "bad", feedback: "You are invisible if you don't post. Volume is key." }
                 ]
             },
             {
-                id: 4,
-                title: "The Plateau",
-                difficulty: "Advanced",
+                id: 4, title: "The Plateau", difficulty: "Advanced",
                 context: "You are stuck at $100k/month. You have 5 different products for 5 different avatars (Dentists, Gyms, Realtors, etc).",
                 question: "How do you scale to $1M/month?",
                 options: [
-                    {
-                        text: "Launch a 6th product for a new niche.",
-                        outcome: "bad",
-                        feedback: "More is not better here. You have split focus. 'Better creates bigger'."
-                    },
-                    {
-                        text: "Cut the 4 worst avatars, focus entirely on the top 1.",
-                        outcome: "good",
-                        feedback: "Correct. Niche down to scale up. Focus all energy on the most profitable avatar."
-                    },
-                    {
-                        text: "Hire more salespeople to sell everything.",
-                        outcome: "bad",
-                        feedback: "Scaling chaos just creates more chaos. Simplify the offer first."
-                    }
+                    { text: "Launch a 6th product for a new niche.", outcome: "bad", feedback: "More is not better here. You have split focus. 'Better creates bigger'." },
+                    { text: "Cut the 4 worst avatars, focus entirely on the top 1.", outcome: "good", feedback: "Correct. Niche down to scale up. Focus all energy on the most profitable avatar." },
+                    { text: "Hire more salespeople to sell everything.", outcome: "bad", feedback: "Scaling chaos just creates more chaos. Simplify the offer first." }
                 ]
             },
             {
-                id: 5,
-                title: "Budget Allocation",
-                difficulty: "Advanced",
+                id: 5, title: "Budget Allocation", difficulty: "Advanced",
                 context: "You have $10,000 to spend. Your LTV is $500. Your CAC is currently $400.",
                 question: "What is the primary problem you need to fix?",
                 options: [
-                    {
-                        text: "Spend more on ads to get volume discounts.",
-                        outcome: "bad",
-                        feedback: "You're barely breaking even. Scaling this will bankrupt you."
-                    },
-                    {
-                        text: "Focus on backend upsells to increase LTV to $1500.",
-                        outcome: "good",
-                        feedback: "Smart. Fix the LTV:CAC ratio back-to-front. If LTV is $1500, a $400 CAC is a money printer."
-                    },
-                    {
-                        text: "Fire the marketing team.",
-                        outcome: "bad",
-                        feedback: "The math is the problem, not necessarily the people. Fix the economics."
-                    }
+                    { text: "Spend more on ads to get volume discounts.", outcome: "bad", feedback: "You're barely breaking even. Scaling this will bankrupt you." },
+                    { text: "Focus on backend upsells to increase LTV to $1500.", outcome: "good", feedback: "Smart. Fix the LTV:CAC ratio back-to-front. If LTV is $1500, a $400 CAC is a money printer." },
+                    { text: "Fire the marketing team.", outcome: "bad", feedback: "The math is the problem, not necessarily the people. Fix the economics." }
                 ]
             }
         ];
 
-        // --- Components ---
+        // --- Application State & Logic ---
+        const app = {
+            state: {
+                view: 'home', // home, learn, sim, summary
+                scenarioIndex: 0,
+                score: 0,
+                feedback: null, // { type: 'good'|'bad', text: '' }
+                history: []
+            },
 
-        const ProgressBar = ({ value, max }) => (
-            <div className="w-full bg-slate-800 rounded-full h-2.5 mb-6">
-                <div 
-                    className="bg-blue-600 h-2.5 rounded-full transition-all duration-500" 
-                    style={{ width: `${(value / max) * 100}%` }}
-                ></div>
-            </div>
-        );
+            init: function() {
+                this.render();
+            },
 
-        const Badge = ({ type }) => {
-            const colors = {
-                Beginner: "bg-green-900 text-green-300 border-green-700",
-                Intermediate: "bg-yellow-900 text-yellow-300 border-yellow-700",
-                Advanced: "bg-red-900 text-red-300 border-red-700"
-            };
-            return (
-                <span className={`text-xs px-2 py-1 rounded border ${colors[type] || colors.Beginner}`}>
-                    {type}
-                </span>
-            );
-        };
+            setView: function(viewName) {
+                this.state.view = viewName;
+                this.render();
+                window.scrollTo(0, 0);
+            },
 
-        // --- Main App ---
+            startSim: function() {
+                this.state.score = 0;
+                this.state.scenarioIndex = 0;
+                this.state.history = [];
+                this.state.feedback = null;
+                this.setView('sim');
+            },
 
-        const App = () => {
-            const [view, setView] = useState('home'); // home, learn, sim, summary
-            const [currentScenarioIndex, setCurrentScenarioIndex] = useState(0);
-            const [score, setScore] = useState(0);
-            const [feedback, setFeedback] = useState(null); // { type: 'good' | 'bad', text: '' }
-            const [history, setHistory] = useState([]);
-
-            const handleStartSim = () => {
-                setScore(0);
-                setCurrentScenarioIndex(0);
-                setHistory([]);
-                setFeedback(null);
-                setView('sim');
-            };
-
-            const handleAnswer = (option) => {
+            handleAnswer: function(optionIndex) {
+                const scenario = scenarios[this.state.scenarioIndex];
+                const option = scenario.options[optionIndex];
                 const isCorrect = option.outcome === 'good';
-                setFeedback({
+
+                this.state.feedback = {
                     type: option.outcome,
                     text: option.feedback
-                });
-                
-                if (isCorrect) setScore(s => s + 100);
+                };
 
-                // Save history
-                const currentScenario = scenarios[currentScenarioIndex];
-                setHistory(prev => [...prev, {
-                    title: currentScenario.title,
+                if (isCorrect) this.state.score += 100;
+
+                this.state.history.push({
+                    title: scenario.title,
                     correct: isCorrect,
                     feedback: option.feedback
-                }]);
-            };
+                });
 
-            const nextScenario = () => {
-                setFeedback(null);
-                if (currentScenarioIndex < scenarios.length - 1) {
-                    setCurrentScenarioIndex(curr => curr + 1);
+                this.render();
+            },
+
+            nextScenario: function() {
+                this.state.feedback = null;
+                if (this.state.scenarioIndex < scenarios.length - 1) {
+                    this.state.scenarioIndex++;
+                    this.render();
                 } else {
-                    setView('summary');
+                    this.setView('summary');
                 }
-            };
+            },
 
-            // --- Views ---
+            // --- HTML Generators ---
 
-            const renderHome = () => (
-                <div className="max-w-4xl mx-auto pt-20 px-6 text-center animate-fade-in">
-                    <h1 className="text-5xl md:text-7xl font-bold mb-6 tracking-tight">
-                        <span className="text-white">Marketing</span>
-                        <span className="text-blue-500">Mastery</span>
-                    </h1>
-                    <p className="text-xl text-slate-400 mb-12 max-w-2xl mx-auto">
-                        Learn the 13 foundational marketing principles from Alex Hormozi. 
-                        Study the playbook, then test your skills in the simulation.
-                    </p>
-                    
-                    <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
-                        <button 
-                            onClick={() => setView('learn')}
-                            className="group p-8 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-2xl transition-all hover:scale-105 text-left"
-                        >
-                            <div className="bg-blue-500/10 w-12 h-12 rounded-lg flex items-center justify-center mb-4 group-hover:bg-blue-500/20">
-                                <BookOpen className="text-blue-400" />
-                            </div>
-                            <h3 className="text-2xl font-bold text-white mb-2">The Playbook</h3>
-                            <p className="text-slate-400">Study the 13 laws of acquisition. Understand LTV, CAC, and Volume.</p>
-                        </button>
+            getHomeHTML: function() {
+                return `
+                    <div class="max-w-4xl mx-auto pt-20 px-6 text-center animate-fade-in">
+                        <h1 class="text-5xl md:text-7xl font-bold mb-6 tracking-tight">
+                            <span class="text-white">Marketing</span>
+                            <span class="text-blue-500">Mastery</span>
+                        </h1>
+                        <p class="text-xl text-slate-400 mb-12 max-w-2xl mx-auto">
+                            Learn the 13 foundational marketing principles from Alex Hormozi. 
+                            Study the playbook, then test your skills in the simulation.
+                        </p>
+                        
+                        <div class="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+                            <button onclick="app.setView('learn')" class="group p-8 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-2xl transition-all hover:scale-105 text-left">
+                                <div class="bg-blue-500/10 w-12 h-12 rounded-lg flex items-center justify-center mb-4 group-hover:bg-blue-500/20">
+                                    <i data-lucide="book-open" class="text-blue-400"></i>
+                                </div>
+                                <h3 class="text-2xl font-bold text-white mb-2">The Playbook</h3>
+                                <p class="text-slate-400">Study the 13 laws of acquisition. Understand LTV, CAC, and Volume.</p>
+                            </button>
 
-                        <button 
-                            onClick={handleStartSim}
-                            className="group p-8 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-2xl transition-all hover:scale-105 text-left"
-                        >
-                            <div className="bg-green-500/10 w-12 h-12 rounded-lg flex items-center justify-center mb-4 group-hover:bg-green-500/20">
-                                <Play className="text-green-400" />
-                            </div>
-                            <h3 className="text-2xl font-bold text-white mb-2">The Simulator</h3>
-                            <p className="text-slate-400">Put your knowledge to the test. Real business scenarios. Pass or fail.</p>
-                        </button>
+                            <button onclick="app.startSim()" class="group p-8 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-2xl transition-all hover:scale-105 text-left">
+                                <div class="bg-green-500/10 w-12 h-12 rounded-lg flex items-center justify-center mb-4 group-hover:bg-green-500/20">
+                                    <i data-lucide="play" class="text-green-400"></i>
+                                </div>
+                                <h3 class="text-2xl font-bold text-white mb-2">The Simulator</h3>
+                                <p class="text-slate-400">Put your knowledge to the test. Real business scenarios. Pass or fail.</p>
+                            </button>
+                        </div>
                     </div>
-                </div>
-            );
+                `;
+            },
 
-            const renderLearn = () => (
-                <div className="max-w-4xl mx-auto pt-10 px-4 animate-fade-in pb-20">
-                    <div className="flex items-center gap-4 mb-8">
-                        <button onClick={() => setView('home')} className="p-2 hover:bg-slate-800 rounded-full">
-                            <ArrowRight className="rotate-180 text-slate-400" />
-                        </button>
-                        <h2 className="text-3xl font-bold text-white">The Playbook</h2>
+            getLearnHTML: function() {
+                const items = principles.map(p => `
+                    <div class="bg-slate-800/50 border border-slate-700 p-6 rounded-xl hover:border-blue-500/50 transition-colors">
+                        <div class="flex items-start gap-4">
+                            <div class="p-3 bg-slate-900 rounded-lg border border-slate-700">
+                                <i data-lucide="${p.icon}" class="${p.color}"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-bold text-white mb-2">${p.id}. ${p.title}</h3>
+                                <p class="text-blue-300 font-medium mb-2">${p.summary}</p>
+                                <p class="text-slate-400 leading-relaxed text-sm">${p.details}</p>
+                            </div>
+                        </div>
                     </div>
+                `).join('');
 
-                    <div className="grid gap-6">
-                        {principles.map((p) => (
-                            <div key={p.id} className="bg-slate-800/50 border border-slate-700 p-6 rounded-xl hover:border-blue-500/50 transition-colors">
-                                <div className="flex items-start gap-4">
-                                    <div className="p-3 bg-slate-900 rounded-lg border border-slate-700">
-                                        {p.icon}
-                                    </div>
-                                    <div>
-                                        <h3 className="text-xl font-bold text-white mb-2">{p.id}. {p.title}</h3>
-                                        <p className="text-blue-300 font-medium mb-2">{p.summary}</p>
-                                        <p className="text-slate-400 leading-relaxed text-sm">{p.details}</p>
-                                    </div>
+                return `
+                    <div class="max-w-4xl mx-auto pt-10 px-4 animate-fade-in pb-20">
+                        <div class="flex items-center gap-4 mb-8">
+                            <button onclick="app.setView('home')" class="p-2 hover:bg-slate-800 rounded-full">
+                                <i data-lucide="arrow-left" class="text-slate-400"></i>
+                            </button>
+                            <h2 class="text-3xl font-bold text-white">The Playbook</h2>
+                        </div>
+                        <div class="grid gap-6">${items}</div>
+                        <div class="mt-12 text-center">
+                            <button onclick="app.startSim()" class="bg-blue-600 hover:bg-blue-500 text-white px-8 py-3 rounded-full font-bold transition-all">
+                                Ready to Practice? Start Simulator
+                            </button>
+                        </div>
+                    </div>
+                `;
+            },
+
+            getSimHTML: function() {
+                const scenario = scenarios[this.state.scenarioIndex];
+                const progress = ((this.state.scenarioIndex) / scenarios.length) * 100;
+
+                // Difficulty Badge Logic
+                const diffColors = {
+                    "Beginner": "bg-green-900 text-green-300 border-green-700",
+                    "Intermediate": "bg-yellow-900 text-yellow-300 border-yellow-700",
+                    "Advanced": "bg-red-900 text-red-300 border-red-700"
+                };
+                const badgeClass = diffColors[scenario.difficulty] || diffColors["Beginner"];
+
+                // Options Rendering
+                const optionsHTML = scenario.options.map((opt, idx) => {
+                    let btnClass = "bg-slate-900/50 border-slate-700 hover:bg-slate-700 hover:border-slate-500 text-slate-200";
+                    let icon = "";
+                    let disabled = "";
+
+                    if (this.state.feedback) {
+                        disabled = "disabled";
+                        if (this.state.feedback.type === opt.outcome) {
+                            if (opt.outcome === 'good') {
+                                btnClass = "bg-green-900/30 border-green-500 text-green-100";
+                                icon = `<i data-lucide="check-circle-2" class="text-green-500 ml-4"></i>`;
+                            } else {
+                                btnClass = "bg-red-900/30 border-red-500 text-red-100";
+                                icon = `<i data-lucide="x-circle" class="text-red-500 ml-4"></i>`;
+                            }
+                        } else {
+                            btnClass = "bg-slate-900/50 border-slate-700 opacity-50";
+                        }
+                    }
+
+                    return `
+                        <button 
+                            onclick="app.handleAnswer(${idx})" 
+                            ${disabled}
+                            class="option-btn w-full text-left p-4 rounded-xl border flex items-center justify-between group ${btnClass}"
+                        >
+                            <span class="flex-1">${opt.text}</span>
+                            ${icon}
+                        </button>
+                    `;
+                }).join('');
+
+                // Feedback Box Rendering
+                let feedbackHTML = "";
+                if (this.state.feedback) {
+                    const isGood = this.state.feedback.type === 'good';
+                    const boxClass = isGood ? "bg-green-900/20 border-green-800" : "bg-red-900/20 border-red-800";
+                    const titleClass = isGood ? "text-green-400" : "text-red-400";
+                    const titleText = isGood ? "Excellent Call" : "Not Quite";
+                    const iconName = isGood ? "check-circle-2" : "x-circle";
+                    const iconColor = isGood ? "text-green-500" : "text-red-500";
+                    const iconBg = isGood ? "bg-green-500/20" : "bg-red-500/20";
+
+                    feedbackHTML = `
+                        <div class="mt-8 p-6 rounded-xl border animate-fade-in ${boxClass}">
+                            <div class="flex items-start gap-4">
+                                <div class="mt-1 p-2 rounded-full ${iconBg}">
+                                    <i data-lucide="${iconName}" class="${iconColor}"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-lg mb-1 ${titleClass}">${titleText}</h4>
+                                    <p class="text-slate-300">${this.state.feedback.text}</p>
                                 </div>
                             </div>
-                        ))}
-                    </div>
-                    
-                    <div className="mt-12 text-center">
-                        <button 
-                            onClick={handleStartSim}
-                            className="bg-blue-600 hover:bg-blue-500 text-white px-8 py-3 rounded-full font-bold transition-all"
-                        >
-                            Ready to Practice? Start Simulator
-                        </button>
-                    </div>
-                </div>
-            );
+                            <div class="mt-6 flex justify-end">
+                                <button onclick="app.nextScenario()" class="bg-white text-slate-900 px-6 py-2 rounded-lg font-bold hover:bg-slate-200 flex items-center gap-2">
+                                    Next Challenge <i data-lucide="arrow-right" width="18"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }
 
-            const renderSim = () => {
-                const scenario = scenarios[currentScenarioIndex];
-
-                return (
-                    <div className="max-w-3xl mx-auto pt-10 px-4 animate-fade-in min-h-screen flex flex-col">
-                        <div className="flex justify-between items-center mb-6">
-                            <button onClick={() => setView('home')} className="text-slate-500 hover:text-white text-sm">
-                                Cancel Simulation
-                            </button>
-                            <div className="flex items-center gap-2">
-                                <Trophy className="w-4 h-4 text-yellow-500" />
-                                <span className="font-mono text-yellow-500 font-bold">{score} XP</span>
+                return `
+                    <div class="max-w-3xl mx-auto pt-10 px-4 animate-fade-in flex flex-col">
+                        <div class="flex justify-between items-center mb-6">
+                            <button onclick="app.setView('home')" class="text-slate-500 hover:text-white text-sm">Cancel Simulation</button>
+                            <div class="flex items-center gap-2">
+                                <i data-lucide="trophy" class="w-4 h-4 text-yellow-500"></i>
+                                <span class="font-mono text-yellow-500 font-bold">${this.state.score} XP</span>
                             </div>
                         </div>
 
-                        <ProgressBar value={currentScenarioIndex} max={scenarios.length} />
+                        <!-- Progress Bar -->
+                        <div class="w-full bg-slate-800 rounded-full h-2.5 mb-6">
+                            <div class="bg-blue-600 h-2.5 rounded-full transition-all duration-500" style="width: ${progress}%"></div>
+                        </div>
 
-                        <div className="bg-slate-800 border border-slate-700 rounded-2xl p-8 shadow-2xl relative overflow-hidden">
-                            {/* Background decoration */}
-                            <div className="absolute top-0 right-0 p-4 opacity-5">
-                                <Brain size={120} />
+                        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-8 shadow-2xl relative overflow-hidden">
+                            <div class="absolute top-0 right-0 p-4 opacity-5">
+                                <i data-lucide="brain" width="120" height="120"></i>
                             </div>
 
-                            <div className="relative z-10">
-                                <div className="flex items-center gap-3 mb-4">
-                                    <span className="text-slate-400 font-mono text-sm">SCENARIO {currentScenarioIndex + 1} OF {scenarios.length}</span>
-                                    <Badge type={scenario.difficulty} />
+                            <div class="relative z-10">
+                                <div class="flex items-center gap-3 mb-4">
+                                    <span class="text-slate-400 font-mono text-sm">SCENARIO ${this.state.scenarioIndex + 1} OF ${scenarios.length}</span>
+                                    <span class="text-xs px-2 py-1 rounded border ${badgeClass}">${scenario.difficulty}</span>
                                 </div>
                                 
-                                <h2 className="text-2xl md:text-3xl font-bold text-white mb-4">{scenario.title}</h2>
-                                <p className="text-slate-300 text-lg mb-8 leading-relaxed border-l-4 border-blue-500 pl-4 bg-slate-900/50 py-4 pr-4 rounded-r-lg">
-                                    {scenario.context}
+                                <h2 class="text-2xl md:text-3xl font-bold text-white mb-4">${scenario.title}</h2>
+                                <p class="text-slate-300 text-lg mb-8 leading-relaxed border-l-4 border-blue-500 pl-4 bg-slate-900/50 py-4 pr-4 rounded-r-lg">
+                                    ${scenario.context}
                                 </p>
                                 
-                                <h3 className="text-xl font-semibold text-white mb-6 flex items-center gap-2">
-                                    <Target className="w-5 h-5 text-blue-400" />
-                                    {scenario.question}
+                                <h3 class="text-xl font-semibold text-white mb-6 flex items-center gap-2">
+                                    <i data-lucide="target" class="w-5 h-5 text-blue-400"></i>
+                                    ${scenario.question}
                                 </h3>
 
-                                <div className="space-y-3">
-                                    {scenario.options.map((option, idx) => (
-                                        <button
-                                            key={idx}
-                                            disabled={feedback !== null}
-                                            onClick={() => handleAnswer(option)}
-                                            className={`w-full text-left p-4 rounded-xl border transition-all duration-200 flex items-center justify-between group
-                                                ${feedback 
-                                                    ? feedback.type === option.outcome && option.outcome === 'good'
-                                                        ? 'bg-green-900/30 border-green-500 text-green-100'
-                                                        : feedback.type === option.outcome && option.outcome === 'bad'
-                                                            ? 'bg-red-900/30 border-red-500 text-red-100'
-                                                            : 'bg-slate-900/50 border-slate-700 opacity-50'
-                                                    : 'bg-slate-900/50 border-slate-700 hover:bg-slate-700 hover:border-slate-500 text-slate-200'
-                                                }
-                                            `}
-                                        >
-                                            <span className="flex-1">{option.text}</span>
-                                            {feedback && feedback.type === option.outcome && option.outcome === 'good' && <CheckCircle2 className="text-green-500 ml-4" />}
-                                            {feedback && feedback.type === option.outcome && option.outcome === 'bad' && <XCircle className="text-red-500 ml-4" />}
-                                        </button>
-                                    ))}
+                                <div class="space-y-3">
+                                    ${optionsHTML}
                                 </div>
 
-                                {feedback && (
-                                    <div className={`mt-8 p-6 rounded-xl animate-fade-in ${feedback.type === 'good' ? 'bg-green-900/20 border border-green-800' : 'bg-red-900/20 border border-red-800'}`}>
-                                        <div className="flex items-start gap-4">
-                                            <div className={`mt-1 p-2 rounded-full ${feedback.type === 'good' ? 'bg-green-500/20' : 'bg-red-500/20'}`}>
-                                                {feedback.type === 'good' ? <CheckCircle2 size={20} className="text-green-500" /> : <XCircle size={20} className="text-red-500" />}
-                                            </div>
-                                            <div>
-                                                <h4 className={`font-bold text-lg mb-1 ${feedback.type === 'good' ? 'text-green-400' : 'text-red-400'}`}>
-                                                    {feedback.type === 'good' ? 'Excellent Call' : 'Not Quite'}
-                                                </h4>
-                                                <p className="text-slate-300">{feedback.text}</p>
-                                            </div>
-                                        </div>
-                                        <div className="mt-6 flex justify-end">
-                                            <button 
-                                                onClick={nextScenario}
-                                                className="bg-white text-slate-900 px-6 py-2 rounded-lg font-bold hover:bg-slate-200 flex items-center gap-2"
-                                            >
-                                                Next Challenge <ArrowRight size={18} />
-                                            </button>
-                                        </div>
-                                    </div>
-                                )}
+                                ${feedbackHTML}
                             </div>
                         </div>
                     </div>
-                );
-            };
+                `;
+            },
 
-            const renderSummary = () => {
+            getSummaryHTML: function() {
                 const maxScore = scenarios.length * 100;
-                const percentage = Math.round((score / maxScore) * 100);
+                const percentage = Math.round((this.state.score / maxScore) * 100);
                 
                 let grade = "C";
                 if (percentage >= 90) grade = "A+ (Acquisition Master)";
@@ -490,94 +400,70 @@
                 else if (percentage >= 60) grade = "B (Getting There)";
                 else grade = "D (Need more Volume)";
 
-                return (
-                    <div className="max-w-2xl mx-auto pt-20 px-4 animate-fade-in text-center">
-                        <div className="bg-slate-800 border border-slate-700 rounded-3xl p-10">
-                            <div className="inline-block p-4 bg-yellow-500/10 rounded-full mb-6">
-                                <Trophy size={48} className="text-yellow-500" />
-                            </div>
-                            <h2 className="text-4xl font-bold text-white mb-2">Simulation Complete</h2>
-                            <p className="text-slate-400 mb-8">Here is how you performed under pressure.</p>
+                const historyHTML = this.state.history.map(item => `
+                    <div class="flex items-start gap-3 text-sm">
+                        <i data-lucide="${item.correct ? 'check-circle-2' : 'x-circle'}" class="${item.correct ? 'text-green-500' : 'text-red-500'} w-5 h-5 shrink-0"></i>
+                        <div>
+                            <div class="text-slate-300 font-medium">${item.title}</div>
+                            <div class="text-slate-500 text-xs">${item.feedback}</div>
+                        </div>
+                    </div>
+                `).join('');
 
-                            <div className="grid grid-cols-2 gap-4 mb-8">
-                                <div className="bg-slate-900 p-6 rounded-2xl">
-                                    <div className="text-slate-500 text-sm font-mono mb-1">FINAL SCORE</div>
-                                    <div className="text-3xl font-bold text-blue-400">{score} <span className="text-slate-600 text-lg">/ {maxScore}</span></div>
+                return `
+                    <div class="max-w-2xl mx-auto pt-20 px-4 animate-fade-in text-center">
+                        <div class="bg-slate-800 border border-slate-700 rounded-3xl p-10">
+                            <div class="inline-block p-4 bg-yellow-500/10 rounded-full mb-6">
+                                <i data-lucide="trophy" width="48" height="48" class="text-yellow-500"></i>
+                            </div>
+                            <h2 class="text-4xl font-bold text-white mb-2">Simulation Complete</h2>
+                            <p class="text-slate-400 mb-8">Here is how you performed under pressure.</p>
+
+                            <div class="grid grid-cols-2 gap-4 mb-8">
+                                <div class="bg-slate-900 p-6 rounded-2xl">
+                                    <div class="text-slate-500 text-sm font-mono mb-1">FINAL SCORE</div>
+                                    <div class="text-3xl font-bold text-blue-400">${this.state.score} <span class="text-slate-600 text-lg">/ ${maxScore}</span></div>
                                 </div>
-                                <div className="bg-slate-900 p-6 rounded-2xl">
-                                    <div className="text-slate-500 text-sm font-mono mb-1">RATING</div>
-                                    <div className="text-xl md:text-2xl font-bold text-green-400">{grade}</div>
+                                <div class="bg-slate-900 p-6 rounded-2xl">
+                                    <div class="text-slate-500 text-sm font-mono mb-1">RATING</div>
+                                    <div class="text-xl md:text-2xl font-bold text-green-400">${grade}</div>
                                 </div>
                             </div>
 
-                            <div className="text-left mb-10 space-y-4">
-                                <h3 className="text-white font-bold border-b border-slate-700 pb-2">Scenario Breakdown</h3>
-                                {history.map((item, i) => (
-                                    <div key={i} className="flex items-start gap-3 text-sm">
-                                        {item.correct ? <CheckCircle2 className="text-green-500 w-5 h-5 shrink-0" /> : <XCircle className="text-red-500 w-5 h-5 shrink-0" />}
-                                        <div>
-                                            <div className="text-slate-300 font-medium">{item.title}</div>
-                                            <div className="text-slate-500 text-xs">{item.feedback}</div>
-                                        </div>
-                                    </div>
-                                ))}
+                            <div class="text-left mb-10 space-y-4">
+                                <h3 class="text-white font-bold border-b border-slate-700 pb-2">Scenario Breakdown</h3>
+                                ${historyHTML}
                             </div>
 
-                            <div className="flex flex-col md:flex-row gap-4 justify-center">
-                                <button 
-                                    onClick={handleStartSim}
-                                    className="px-8 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-full font-bold flex items-center justify-center gap-2"
-                                >
-                                    <RefreshCw size={18} /> Try Again
+                            <div class="flex flex-col md:flex-row gap-4 justify-center">
+                                <button onclick="app.startSim()" class="px-8 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-full font-bold flex items-center justify-center gap-2">
+                                    <i data-lucide="refresh-cw" width="18"></i> Try Again
                                 </button>
-                                <button 
-                                    onClick={() => setView('learn')}
-                                    className="px-8 py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-full font-bold"
-                                >
+                                <button onclick="app.setView('learn')" class="px-8 py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-full font-bold">
                                     Review Principles
                                 </button>
                             </div>
                         </div>
                     </div>
-                );
-            };
+                `;
+            },
 
-            return (
-                <div className="min-h-screen pb-10">
-                    {/* Navigation */}
-                    <nav className="border-b border-slate-800 bg-slate-900/50 backdrop-blur-md sticky top-0 z-50">
-                        <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-                            <div className="flex items-center gap-2 cursor-pointer" onClick={() => setView('home')}>
-                                <TrendingUp className="text-blue-500" />
-                                <span className="font-bold text-white text-lg hidden md:block">Acquisition<span className="text-slate-500">Sim</span></span>
-                            </div>
-                            <div className="flex gap-4">
-                                <button 
-                                    onClick={() => setView('learn')} 
-                                    className={`text-sm font-medium transition-colors ${view === 'learn' ? 'text-white' : 'text-slate-400 hover:text-white'}`}
-                                >
-                                    Playbook
-                                </button>
-                                <button 
-                                    onClick={handleStartSim} 
-                                    className={`text-sm font-medium transition-colors ${view === 'sim' ? 'text-white' : 'text-slate-400 hover:text-white'}`}
-                                >
-                                    Simulator
-                                </button>
-                            </div>
-                        </div>
-                    </nav>
-
-                    {view === 'home' && renderHome()}
-                    {view === 'learn' && renderLearn()}
-                    {view === 'sim' && renderSim()}
-                    {view === 'summary' && renderSummary()}
-                </div>
-            );
+            render: function() {
+                const root = document.getElementById('app-root');
+                if (this.state.view === 'home') root.innerHTML = this.getHomeHTML();
+                else if (this.state.view === 'learn') root.innerHTML = this.getLearnHTML();
+                else if (this.state.view === 'sim') root.innerHTML = this.getSimHTML();
+                else if (this.state.view === 'summary') root.innerHTML = this.getSummaryHTML();
+                
+                // Initialize Lucide icons after rendering new HTML
+                lucide.createIcons();
+            }
         };
 
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
+        // Initialize App
+        document.addEventListener('DOMContentLoaded', () => {
+            app.init();
+        });
     </script>
 </body>
 </html>
